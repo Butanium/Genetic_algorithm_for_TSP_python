@@ -11,7 +11,8 @@ def createCity(nbCity, limits):
     return [[(randint(limits[i][0], limits[i][1])) for i in [0, 1, 2]] for j in range(nbCity)]
 
 
-def get_trip_len(city1, city2):
+def get_trip_len(city1, city2):  # calcule la distance à parcourir entre 2 villes
+    # calculate the distance to reach city2 from city1
     if city1 == city2:
         return 0
     trip_len = sum([(city1[i] - city2[i]) ** 2 for i in range(3)]) ** .5
@@ -21,7 +22,7 @@ def get_trip_len(city1, city2):
     return trip_len
 
 
-def create_city_weight(cities):
+def create_city_weight(cities):  # create the weight matrix in which all distance between cities are stored
     cMatrix = []
     for i in range(len(cities)):
         l = []
@@ -31,12 +32,12 @@ def create_city_weight(cities):
     return cMatrix
 
 
-class Indiv:
+class Indiv:  # an indiv is a potential solution to the problem, here it's just a list of cities which shape a route
     def __init__(self, genes=()):
         self.score = 'not defined'
         self.adn = list(genes)
 
-    def random_creation(self, city_count, city_indexs, ):
+    def random_creation(self, city_count, city_indexs, ):  # randomly generate the indiv route
         c = [i for i in city_indexs]
         for i in range(city_count):
             rd = randint(0, len(c) - 1)
@@ -45,7 +46,7 @@ class Indiv:
         if len(self.adn) < city_count:
             print('not enough cities')
 
-    def get_score(self, weightMatrix):
+    def get_score(self, weightMatrix):  # return the route length
         self.score = 0
         for i in range(-1, len(self.adn) - 2):
             self.score += weightMatrix[self.adn[i]][self.adn[i + 1]]
@@ -57,7 +58,7 @@ class Indiv:
         print('score : ', self.score, 'adn : ', self.adn)
 
 
-def insert_indiv(indiv_list, indiv_score):
+def insert_indiv(indiv_list, indiv_score):  # dichotomy algorithm to sort indivs by score
     debug = 0
     mini = 0
     sup = len(indiv_list) - 1
@@ -82,7 +83,7 @@ def insert_indiv(indiv_list, indiv_score):
     return 'finish exception'
 
 
-def sort_indivs(indiv_list, weight_matrix):
+def sort_indivs(indiv_list, weight_matrix):  # sort indivs in score ascending order
     debug_list = []
     sorted_indiv_list = []
     first = True
@@ -100,9 +101,9 @@ def sort_indivs(indiv_list, weight_matrix):
     return sorted_indiv_list
 
 
-def reproduce(mum, dad, city_count, repro_mode=1):
+def reproduce(dad, mum, city_count, repro_mode=1):  # mix 2 indivs to make a new one
     son_adn = []
-    if repro_mode == 1:
+    if repro_mode == 1:  # first half of dad completed by the mum order : dad = [1,3,4,2] + mum [2,3,1,4] -> [1,3,2,4]
         for i in range(city_count // 2):
             son_adn.append(dad.adn[i])
         for j in range(city_count):
@@ -117,7 +118,7 @@ def reproduce(mum, dad, city_count, repro_mode=1):
     return Indiv(son_adn)
 
 
-def mutate(dude: Indiv, mut_rate, city_count):
+def mutate(dude: Indiv, mut_rate, city_count):  # random change in the indiv adn
     nb_mutation = round(city_count * mut_rate)
     for i in range(nb_mutation):
         a = randint(0, city_count - 1)
@@ -128,7 +129,8 @@ def mutate(dude: Indiv, mut_rate, city_count):
         dude.adn[a], dude.adn[b] = dude.adn[b], dude.adn[a]
 
 
-def manage_reproduction(nbIndiv, nb_elite, indiv_list, city_count, selection_rate=.3, mutation_rate=.1):
+def manage_reproduction(nbIndiv, nb_elite, indiv_list, city_count, selection_rate=.3, mutation_rate=.1):  # manage
+    #  reproduction between the selected indivs
     litter = []
     nb_breeder = floor(selection_rate * nbIndiv)
     nb_repro_per_indiv = (nbIndiv - nb_elite) // nb_breeder
@@ -163,7 +165,7 @@ def manage_reproduction(nbIndiv, nb_elite, indiv_list, city_count, selection_rat
     return litter
 
 
-def genesis(indiv_count, g_city_count):
+def genesis(indiv_count, g_city_count):  # first generation, entirely random
     indiv_list = []
     gen_city_indexs = [i for i in range(g_city_count)]
     for i in range(indiv_count):
@@ -177,7 +179,7 @@ debug_indiv = None
 
 
 def run_generation(g_list_indivs, g_weights_matrix, g_city_count, g_indiv_count=500, g_mutation_rate=.1,
-                   g_selection_rate=.3, g_elite_size=3, ):
+                   g_selection_rate=.3, g_elite_size=3, ):  # a normal generation
     global debug_indiv
     g_list_indivs = sort_indivs(g_list_indivs, g_weights_matrix)
     print(g_list_indivs[0].score)
@@ -196,7 +198,7 @@ def swap(list, a, b):
     list[a], list[b] = list[b], list[a]
 
 
-def get_permutations(list, to_print=(), perms_list=()):
+def get_permutations(list, to_print=(), perms_list=()):  # hand made permutation code (useless)
     if not to_print:
         perms_list = [list]
     for i in range(len(list)):
@@ -212,7 +214,7 @@ def get_permutations(list, to_print=(), perms_list=()):
     return perms_list
 
 
-def brute_force(nb_city, weight_matrix):
+def brute_force(nb_city, weight_matrix):  # brute force algorithm to compare it with the genetic algorithm
     permutations = permute_list_base([i for i in range(nb_city)])
 
     # hand made code : get_permutations([i for i in range(nb_city)])
@@ -258,6 +260,7 @@ population = genesis(300, 10)
 t = time.process_time()
 for i in range(100):
     population = run_generation(population, weights, 10)
+
 algo_gen_time = time.process_time() - t
 best_indiv = sort_indivs(population, weights)[0]
 best_indiv.print(weights)
