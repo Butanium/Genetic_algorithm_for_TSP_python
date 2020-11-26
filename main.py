@@ -2,7 +2,10 @@ import random
 from random import randint
 from math import ceil, floor
 from sys import exit
-
+import time
+from itertools import permutations as permute_list_base
+on = True
+off = False
 
 def createCity(nbCity, limits):
     return [[(randint(limits[i][0], limits[i][1])) for i in [0, 1, 2]] for j in range(nbCity)]
@@ -39,7 +42,7 @@ class Indiv:
             rd = randint(0, len(c) - 1)
             self.adn.append(c[rd])
             c.pop(rd)
-        if len(self.adn)<city_count:
+        if len(self.adn) < city_count:
             print('not enough cities')
 
     def get_score(self, weightMatrix):
@@ -48,7 +51,9 @@ class Indiv:
             self.score += weightMatrix[self.adn[i]][self.adn[i + 1]]
         return self.score
 
-    def print(self):
+    def print(self, weight_matrix=()):
+        if self.score == 'not defined' and weight_matrix:
+            self.get_score(weight_matrix)
         print('score : ', self.score, 'adn : ', self.adn)
 
 
@@ -186,24 +191,57 @@ def run_generation(g_list_indivs, g_weights_matrix, g_city_count, g_indiv_count=
     debug_indiv = g_list_indivs[0]
     return new_gen
 
-def brute_force(nb_city):
-    index_list = [i for i in range(nb_city)]
-    permutation = [i for i in range(nb_city)]
+
+def swap(list, a, b):
+    list[a], list[b] = list[b], list[a]
 
 
+def get_permutations(list, to_print=(), perms_list=()):
+    if not to_print:
+        perms_list = [list]
+    for i in range(len(list)):
+        swap(list, 0, i)
+        if i != 0:
+            tp = [i for i in to_print]
+            tp.extend([i for i in list])
+            perms_list.append(tp)
+        end_list = [i for i in to_print]
+        end_list.append(list[0])
+        if len(list) > 2:
+            get_permutations([list[i] for i in range(1, len(list))], end_list, perms_list)
+    return perms_list
 
+
+def brute_force(nb_city, weight_matrix):
+    permutations = permute_list_base([i for i in range(nb_city)])
+
+    # hand made code : get_permutations([i for i in range(nb_city)])
+    maxi = False
+    best_path = []
+    for path in permutations:
+        score = 0
+        for i in range(-1, len(path) - 2):
+            score += weight_matrix[path[i]][path[i + 1]]
+        if not maxi or score < maxi:
+            maxi = score
+            best_path = path
+    return best_path, maxi
 
 
 # global_parameters
+# genetic algorithm
 global_city_count = 10
 global_mutation_rate = .1
 global_selection_rate = .3
 global_indiv_count = 300
 global_nb_elite = 3
 cityMatrix = []
-
 cities = createCity(10, [[0, 100] for i in range(3)])
 weights = create_city_weight(cities)
+
+# miscs
+brute_force_comparaison = on
+
 
 population = genesis(300, 10)
 # a = Indiv()
@@ -215,10 +253,21 @@ population = genesis(300, 10)
 # print(id(a.score), a.score, id(b.score), b.score)
 # print(id(a.adn), id(b.adn))
 # print(weights)
-#for i in population:
+# for i in population:
 #    if len(i.adn)
+t = time.process_time()
 for i in range(100):
     population = run_generation(population, weights, 10)
-population[0].print()
+algo_gen_time = time.process_time() - t
+best_indiv = sort_indivs(population, weights)[0]
+best_indiv.print(weights)
+algo_gen_score = best_indiv.score
+if brute_force_comparaison:
+    brute_time = time.process_time()
+    bestPath, bestScore = brute_force(global_city_count, weights)
+    brute_time = time.process_time() - brute_time
 
-
+    print("the genetic algorithm took " + str(algo_gen_time)
+          + "s to run\n while the brute force one took : " + str(brute_time) + "\n" +
+          "the genetic algorithm reached " + str((100-(algo_gen_score-bestScore)/bestScore))+
+          "% of the best score " + str(algo_gen_score)+ " (algo score and) "+ str(bestScore) + " (best score)")
