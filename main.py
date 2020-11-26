@@ -191,8 +191,6 @@ def run_generation(g_list_indivs, g_weights_matrix, g_city_count, g_indiv_count=
     return new_gen
 
 
-
-
 def swap(list, a, b):
     list[a], list[b] = list[b], list[a]
 
@@ -228,7 +226,7 @@ def brute_force(nb_city, weight_matrix):  # brute force algorithm to compare it 
         if not maxi or score < maxi:
             maxi = score
             best_path = path
-            brute_force_x.append(time.process_time()-brute_time)
+            brute_force_x.append(time.process_time() - brute_time)
             brute_force_y.append(maxi)
 
     return best_path, maxi
@@ -236,7 +234,7 @@ def brute_force(nb_city, weight_matrix):  # brute force algorithm to compare it 
 
 # global_parameters
 # genetic algorithm
-global_city_count = 10
+global_city_count = 11
 global_mutation_rate = .1
 global_selection_rate = .3
 global_indiv_count = 300
@@ -248,17 +246,21 @@ weights = create_city_weight(cities)
 # miscs
 brute_force_comparaison = off
 
-population = genesis(300, 10)
+population = genesis(global_indiv_count, global_city_count)
 t = time.process_time()
 generations = []
 generation_scores = []
 
 for i in range(100):
-    generations.append(time.process_time()-t)
-    population = run_generation(population, weights, 10)
+    generations.append(time.process_time() - t)
+    population = run_generation(population, weights, global_city_count, global_indiv_count, global_mutation_rate,
+                                global_selection_rate, global_nb_elite)
+
+
+
 plt.subplot(211)
-markers_on = [i for i in range(len(generations)) if i%4==0 or i<10]
-plt.plot(generations, generation_scores, marker='.',markevery=markers_on)
+markers_on = [i for i in range(len(generations)) if i % 4 == 0 or i < 10]
+plt.plot(generations, generation_scores, marker='.', markevery=markers_on)
 plt.title('Genetic algorithm performance on time')
 plt.ylabel('best indiv score per generation')
 plt.xlabel('time (s)')
@@ -275,7 +277,7 @@ if brute_force_comparaison:
     brute_time = time.process_time() - brute_time
     brute_force_x.append(brute_time)
     brute_force_y.append(bestScore)
-    plt.plot(brute_force_x,brute_force_y, )
+    plt.plot(brute_force_x, brute_force_y, )
 
     plt.title('Brute force performance on time')
     plt.ylabel('brute force score')
