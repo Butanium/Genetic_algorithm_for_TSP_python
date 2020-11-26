@@ -240,11 +240,11 @@ global_selection_rate = .3
 global_indiv_count = 300
 global_nb_elite = 3
 cityMatrix = []
-cities = createCity(10, [[0, 100] for i in range(3)])
+cities = createCity(global_city_count, [[0, 100] for i in range(3)])
 weights = create_city_weight(cities)
 
 # miscs
-brute_force_comparaison = off
+brute_force_comparaison = on  # if you want or not the script to run the brute force algorithm to compare
 
 population = genesis(global_indiv_count, global_city_count)
 t = time.process_time()
@@ -255,8 +255,6 @@ for i in range(100):
     generations.append(time.process_time() - t)
     population = run_generation(population, weights, global_city_count, global_indiv_count, global_mutation_rate,
                                 global_selection_rate, global_nb_elite)
-
-
 
 plt.subplot(211)
 markers_on = [i for i in range(len(generations)) if i % 4 == 0 or i < 10]
