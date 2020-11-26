@@ -4,8 +4,11 @@ from math import ceil, floor
 from sys import exit
 import time
 from itertools import permutations as permute_list_base
+
 on = True
 off = False
+import matplotlib.pyplot as plt
+
 
 def createCity(nbCity, limits):
     return [[(randint(limits[i][0], limits[i][1])) for i in [0, 1, 2]] for j in range(nbCity)]
@@ -175,23 +178,19 @@ def genesis(indiv_count, g_city_count):  # first generation, entirely random
     return indiv_list
 
 
-debug_indiv = None
-
-
 def run_generation(g_list_indivs, g_weights_matrix, g_city_count, g_indiv_count=500, g_mutation_rate=.1,
                    g_selection_rate=.3, g_elite_size=3, ):  # a normal generation
-    global debug_indiv
+    global generation_scores
     g_list_indivs = sort_indivs(g_list_indivs, g_weights_matrix)
-    print(g_list_indivs[0].score)
-
-    print(debug_indiv in g_list_indivs)
-
+    generation_scores.append(g_list_indivs[0].score)
     new_gen = manage_reproduction(g_indiv_count, g_elite_size, g_list_indivs, g_city_count, g_selection_rate,
                                   g_mutation_rate)
     for i in range(g_elite_size + 1):
         new_gen.append(g_list_indivs[i])
-    debug_indiv = g_list_indivs[0]
+
     return new_gen
+
+
 
 
 def swap(list, a, b):
@@ -216,7 +215,9 @@ def get_permutations(list, to_print=(), perms_list=()):  # hand made permutation
 
 def brute_force(nb_city, weight_matrix):  # brute force algorithm to compare it with the genetic algorithm
     permutations = permute_list_base([i for i in range(nb_city)])
-
+    global brute_force_x
+    global brute_force_y
+    global brute_time
     # hand made code : get_permutations([i for i in range(nb_city)])
     maxi = False
     best_path = []
@@ -227,6 +228,9 @@ def brute_force(nb_city, weight_matrix):  # brute force algorithm to compare it 
         if not maxi or score < maxi:
             maxi = score
             best_path = path
+            brute_force_x.append(time.process_time()-brute_time)
+            brute_force_y.append(maxi)
+
     return best_path, maxi
 
 
@@ -242,35 +246,43 @@ cities = createCity(10, [[0, 100] for i in range(3)])
 weights = create_city_weight(cities)
 
 # miscs
-brute_force_comparaison = on
-
+brute_force_comparaison = off
 
 population = genesis(300, 10)
-# a = Indiv()
-# a.random_creation(global_city_count, [i for i in range(global_city_count)])
-# b = Indiv()
-# b.random_creation(global_city_count, [i for i in range(global_city_count)])
-# a.get_score(weights)
-# b.get_score(weights)
-# print(id(a.score), a.score, id(b.score), b.score)
-# print(id(a.adn), id(b.adn))
-# print(weights)
-# for i in population:
-#    if len(i.adn)
 t = time.process_time()
-for i in range(100):
-    population = run_generation(population, weights, 10)
+generations = []
+generation_scores = []
 
+for i in range(100):
+    generations.append(time.process_time()-t)
+    population = run_generation(population, weights, 10)
+plt.subplot(211)
+markers_on = [i for i in range(len(generations)) if i%4==0 or i<10]
+plt.plot(generations, generation_scores, marker='.',markevery=markers_on)
+plt.title('Genetic algorithm performance on time')
+plt.ylabel('best indiv score per generation')
+plt.xlabel('time (s)')
 algo_gen_time = time.process_time() - t
 best_indiv = sort_indivs(population, weights)[0]
 best_indiv.print(weights)
 algo_gen_score = best_indiv.score
 if brute_force_comparaison:
+    plt.subplot(212)
     brute_time = time.process_time()
+    brute_force_x = []
+    brute_force_y = []
     bestPath, bestScore = brute_force(global_city_count, weights)
     brute_time = time.process_time() - brute_time
+    brute_force_x.append(brute_time)
+    brute_force_y.append(bestScore)
+    plt.plot(brute_force_x,brute_force_y, )
+
+    plt.title('Brute force performance on time')
+    plt.ylabel('brute force score')
+    plt.xlabel('time (sà')
 
     print("the genetic algorithm took " + str(algo_gen_time)
           + "s to run\n while the brute force one took : " + str(brute_time) + "\n" +
-          "the genetic algorithm reached " + str((100-(algo_gen_score-bestScore)/bestScore))+
-          "% of the best score " + str(algo_gen_score)+ " (algo score and) "+ str(bestScore) + " (best score)")
+          "the genetic algorithm reached " + str((100 - (algo_gen_score - bestScore) / bestScore)) +
+          "% of the best score " + str(algo_gen_score) + " (algo score and) " + str(bestScore) + " (best score)")
+plt.show()
