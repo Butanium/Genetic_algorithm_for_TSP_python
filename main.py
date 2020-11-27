@@ -133,11 +133,18 @@ def mutate(dude: Indiv, mut_rate, city_count):  # random change in the indiv adn
         dude.adn[a], dude.adn[b] = dude.adn[b], dude.adn[a]
 
 
-def manage_reproduction(nbIndiv, nb_elite, indiv_list, city_count, selection_rate=.3, mutation_rate=.1):  # manage
+def manage_reproduction(nbIndiv, nb_elite, indiv_list, city_count, selection_rate=.3, mutation_rate=.1,
+                        nb_new_indiv=0):  # manage
     #  reproduction between the selected indivs
+
     litter = []
     nb_breeder = floor(selection_rate * nbIndiv)
-    nb_repro_per_indiv = (nbIndiv - nb_elite) // nb_breeder
+    for i in range(nb_new_indiv):
+        ind = Indiv()
+        ind.random_creation(city_count, [i for i in range(city_count)])
+        indiv_list.insert(nb_breeder, ind)
+    #nb_breeder += nb_new_indiv
+    nb_repro_per_indiv = (nbIndiv - nb_elite - nb_new_indiv) // nb_breeder
     nb_elite_repro = nb_repro_per_indiv // 2
     for i in range(nb_breeder):
         breeder = indiv_list[i]
@@ -151,13 +158,13 @@ def manage_reproduction(nbIndiv, nb_elite, indiv_list, city_count, selection_rat
 
         for h in range(nb_repro_per_indiv - nb_elite_repro):
             while True:
-                a = randint(0, nb_breeder)
+                a = randint(0, nb_breeder+nb_new_indiv)
                 if a != i:
                     break
             son = reproduce(breeder, indiv_list[a], city_count)
             mutate(son, mutation_rate, city_count)
             litter.append(son)
-    for i in range(nbIndiv - nb_elite - nb_repro_per_indiv * nb_breeder):
+    for i in range(nbIndiv - nb_elite - nb_new_indiv - nb_repro_per_indiv * nb_breeder):
         b = randint(0, nb_breeder // 2)
         while True:
             a = randint(0, nb_breeder // 2)
@@ -179,13 +186,13 @@ def genesis(indiv_count, g_city_count):  # first generation, entirely random
     return indiv_list
 
 
-def run_generation(g_list_indivs, g_weights_matrix, g_city_count, g_indiv_count=500, g_mutation_rate=.1,
-                   g_selection_rate=.3, g_elite_size=3, ):  # a normal generation
+def run_generation(g_list_indivs, g_weights_matrix, g_city_count, g_indiv_count=500, g_mutation_rate=.015,
+                   g_selection_rate=.15, g_elite_size=3, g_nb_new_indiv=5):  # a normal generation
     global generation_scores
     g_list_indivs = sort_indivs(g_list_indivs, g_weights_matrix)
     generation_scores.append(g_list_indivs[0].score)
     new_gen = manage_reproduction(g_indiv_count, g_elite_size, g_list_indivs, g_city_count, g_selection_rate,
-                                  g_mutation_rate)
+                                  g_mutation_rate, g_nb_new_indiv)
     for i in range(g_elite_size + 1):
         new_gen.append(g_list_indivs[i])
 
@@ -235,11 +242,12 @@ def brute_force(nb_city, weight_matrix):  # brute force algorithm to compare it 
 
 # global_parameters
 # genetic algorithm
-global_city_count = 10
-global_mutation_rate = .1
-global_selection_rate = .3
-global_indiv_count = 500
+global_city_count = 50
+global_mutation_rate = .015
+global_selection_rate = .15
+global_indiv_count = 700
 global_nb_elite = 3
+global_nb_new_indiv = 10
 cityMatrix = []
 cities = create_city(global_city_count, [[0, 100] for i in range(3)])
 weights = create_city_weight(cities)
@@ -254,12 +262,11 @@ t = time.process_time()
 generations = []
 generation_scores = []
 
-
 if genetic_algorithm:
     for i in range(100):
         generations.append(time.process_time() - t)
         population = run_generation(population, weights, global_city_count, global_indiv_count, global_mutation_rate,
-                                    global_selection_rate, global_nb_elite)
+                                    global_selection_rate, global_nb_elite, global_nb_new_indiv)
 
     plt.subplot(211)
     markers_on = [i for i in range(len(generations)) if i % 4 == 0 or i < 10]
@@ -291,7 +298,7 @@ if brute_force_comparaison:
     if genetic_algorithm:
         print("the genetic algorithm took " + str(algo_gen_time)
               + "s to run\n while the brute force one took : " + str(brute_time) + "\n" +
-              "the genetic algorithm reached " + str((100 - (algo_gen_score - bestScore) / bestScore)) +
+              "the genetic algorithm reached " + str((100 - (algo_gen_score - bestScore)*100 / bestScore)) +
               "% of the best score " + str(algo_gen_score) + " (algo score and) " + str(bestScore) + " (best score)")
 
 if annealing_comparaison:
@@ -311,6 +318,7 @@ if annealing_comparaison:
     if genetic_algorithm:
         print("the genetic algorithm took " + str(algo_gen_time)
               + "s to run\n while the simulated annealing one took : " + str(annealing_time) + "\n" +
-              "the genetic algorithm reached " + str((100 - (algo_gen_score - annealing_score) / annealing_score)) +
-              "% of the best score " + str(algo_gen_score) + " (algo score and) " + str(annealing_score) + " (best score)")
+              "the genetic algorithm reached " + str((100 - ((algo_gen_score - annealing_score)*100 / annealing_score))) +
+              "% of the best score " + str(algo_gen_score) + " (algo score and) " + str(
+            annealing_score) + " (best score)")
 plt.show()

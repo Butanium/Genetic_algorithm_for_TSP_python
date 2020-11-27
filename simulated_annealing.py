@@ -16,7 +16,7 @@ def get_route_len(weight_matrix, route):
     return score
 
 
-def simulated_annealing(city_count, weight_matrix, x_list, y_list):
+def simulated_annealing(city_count, weight_matrix, x_list, y_list, precision =.99992):
     start_time = process_time()
 
     indexs = [i for i in range(city_count)]
@@ -41,11 +41,12 @@ def simulated_annealing(city_count, weight_matrix, x_list, y_list):
             swap(route, a, b)
         new_energy = get_route_len(weight_matrix, route)
         r = random()
-        if exp(-(energy - new_energy) / temperature) > r:
+        if exp(-(new_energy - energy) / temperature) > r:
             chosen_route = route
             energy = new_energy
-            x_list.append(process_time()-start_time)
-            y_list.append(energy)
-        temperature *= .99
+        x_list.append(process_time()-start_time)
+        y_list.append(energy)
+        temperature *= precision
+        print(temperature)
 
     return chosen_route, energy
