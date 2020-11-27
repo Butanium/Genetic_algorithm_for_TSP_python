@@ -16,7 +16,7 @@ def get_route_len(weight_matrix, route):
     return score
 
 
-def simulated_annealing(city_count, weight_matrix, x_list, y_list, precision =.99992):
+def simulated_annealing(city_count, weight_matrix, x_list, y_list, precision =.9993):
     start_time = process_time()
 
     indexs = [i for i in range(city_count)]
@@ -47,6 +47,6 @@ def simulated_annealing(city_count, weight_matrix, x_list, y_list, precision =.9
         x_list.append(process_time()-start_time)
         y_list.append(energy)
         temperature *= precision
-        print(temperature)
+        #print(temperature)
 
     return chosen_route, energy

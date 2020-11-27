@@ -242,7 +242,7 @@ def brute_force(nb_city, weight_matrix):  # brute force algorithm to compare it 
 
 # global_parameters
 # genetic algorithm
-global_city_count = 50
+global_city_count = 500
 global_mutation_rate = .015
 global_selection_rate = .15
 global_indiv_count = 700
@@ -255,12 +255,13 @@ weights = create_city_weight(cities)
 # miscs
 brute_force_comparaison = off  # if you want or not the script to run the brute force algorithm to compare
 annealing_comparaison = on
-genetic_algorithm = on
+genetic_algorithm = off
 
 population = genesis(global_indiv_count, global_city_count)
 t = time.process_time()
 generations = []
 generation_scores = []
+plt.suptitle(str(global_city_count)+" cities")
 
 if genetic_algorithm:
     for i in range(100):
