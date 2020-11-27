@@ -4,13 +4,14 @@ from math import ceil, floor
 from sys import exit
 import time
 from itertools import permutations as permute_list_base
+import matplotlib.pyplot as plt
+from simulated_annealing import simulated_annealing
 
 on = True
 off = False
-import matplotlib.pyplot as plt
 
 
-def createCity(nbCity, limits):
+def create_city(nbCity, limits):
     return [[(randint(limits[i][0], limits[i][1])) for i in [0, 1, 2]] for j in range(nbCity)]
 
 
@@ -234,40 +235,47 @@ def brute_force(nb_city, weight_matrix):  # brute force algorithm to compare it 
 
 # global_parameters
 # genetic algorithm
-global_city_count = 11
+global_city_count = 10
 global_mutation_rate = .1
 global_selection_rate = .3
-global_indiv_count = 300
+global_indiv_count = 500
 global_nb_elite = 3
 cityMatrix = []
-cities = createCity(global_city_count, [[0, 100] for i in range(3)])
+cities = create_city(global_city_count, [[0, 100] for i in range(3)])
 weights = create_city_weight(cities)
 
 # miscs
-brute_force_comparaison = on  # if you want or not the script to run the brute force algorithm to compare
+brute_force_comparaison = off  # if you want or not the script to run the brute force algorithm to compare
+annealing_comparaison = on
+genetic_algorithm = on
 
 population = genesis(global_indiv_count, global_city_count)
 t = time.process_time()
 generations = []
 generation_scores = []
 
-for i in range(100):
-    generations.append(time.process_time() - t)
-    population = run_generation(population, weights, global_city_count, global_indiv_count, global_mutation_rate,
-                                global_selection_rate, global_nb_elite)
 
-plt.subplot(211)
-markers_on = [i for i in range(len(generations)) if i % 4 == 0 or i < 10]
-plt.plot(generations, generation_scores, marker='.', markevery=markers_on)
-plt.title('Genetic algorithm performance on time')
-plt.ylabel('best indiv score per generation')
-plt.xlabel('time (s)')
-algo_gen_time = time.process_time() - t
-best_indiv = sort_indivs(population, weights)[0]
-best_indiv.print(weights)
-algo_gen_score = best_indiv.score
+if genetic_algorithm:
+    for i in range(100):
+        generations.append(time.process_time() - t)
+        population = run_generation(population, weights, global_city_count, global_indiv_count, global_mutation_rate,
+                                    global_selection_rate, global_nb_elite)
+
+    plt.subplot(211)
+    markers_on = [i for i in range(len(generations)) if i % 4 == 0 or i < 10]
+    plt.plot(generations, generation_scores, marker='.', markevery=markers_on)
+    plt.title('Genetic algorithm performance on time')
+    plt.ylabel('best indiv score per generation')
+    plt.xlabel('time (s)')
+    algo_gen_time = time.process_time() - t
+    best_indiv = sort_indivs(population, weights)[0]
+    best_indiv.print(weights)
+    algo_gen_score = best_indiv.score
+
 if brute_force_comparaison:
-    plt.subplot(212)
+    if genetic_algorithm:
+        plt.subplot(212)
+
     brute_time = time.process_time()
     brute_force_x = []
     brute_force_y = []
@@ -279,10 +287,30 @@ if brute_force_comparaison:
 
     plt.title('Brute force performance on time')
     plt.ylabel('brute force score')
-    plt.xlabel('time (sà')
+    plt.xlabel('time (s)')
+    if genetic_algorithm:
+        print("the genetic algorithm took " + str(algo_gen_time)
+              + "s to run\n while the brute force one took : " + str(brute_time) + "\n" +
+              "the genetic algorithm reached " + str((100 - (algo_gen_score - bestScore) / bestScore)) +
+              "% of the best score " + str(algo_gen_score) + " (algo score and) " + str(bestScore) + " (best score)")
 
-    print("the genetic algorithm took " + str(algo_gen_time)
-          + "s to run\n while the brute force one took : " + str(brute_time) + "\n" +
-          "the genetic algorithm reached " + str((100 - (algo_gen_score - bestScore) / bestScore)) +
-          "% of the best score " + str(algo_gen_score) + " (algo score and) " + str(bestScore) + " (best score)")
+if annealing_comparaison:
+    if genetic_algorithm:
+        plt.subplot(212)
+    annealing_time = time.process_time()
+    annealing_x = []
+    annealing_y = []
+    annealing_path, annealing_score = simulated_annealing(global_city_count, weights, annealing_x, annealing_y)
+    annealing_time = time.process_time() - annealing_time
+    annealing_x.append(annealing_time)
+    annealing_y.append(annealing_score)
+    plt.plot(annealing_x, annealing_y, )
+    plt.title('simulated annealing performance on time')
+    plt.ylabel('simulated annealing score')
+    plt.xlabel('time (s)')
+    if genetic_algorithm:
+        print("the genetic algorithm took " + str(algo_gen_time)
+              + "s to run\n while the simulated annealing one took : " + str(annealing_time) + "\n" +
+              "the genetic algorithm reached " + str((100 - (algo_gen_score - annealing_score) / annealing_score)) +
+              "% of the best score " + str(algo_gen_score) + " (algo score and) " + str(annealing_score) + " (best score)")
 plt.show()
