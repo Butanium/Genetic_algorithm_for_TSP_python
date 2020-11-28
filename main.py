@@ -3,18 +3,20 @@ from random import randint
 from sys import exit
 import time
 import matplotlib.pyplot as plt
+import result_display
 
 on = True
 off = False
 
 
 def create_city(nbCity, limits):
+    """create the cities"""
     global dimension
     return [[(randint(limits[i][0], limits[i][1])) for i in range(dimension)] for j in range(nbCity)]
 
 
 def get_trip_len(city1, city2):  # calcule la distance à parcourir entre 2 villes
-    # calculate the distance to reach city2 from city1
+    """calculate the distance to reach city2 from city1"""
     if city1 == city2:
         return 0
     trip_len = sum([(city1[i] - city2[i]) ** 2 for i in range(len(city1))]) ** .5
@@ -24,7 +26,8 @@ def get_trip_len(city1, city2):  # calcule la distance à parcourir entre 2 vill
     return trip_len
 
 
-def create_city_weight(cities):  # create the weight matrix in which all distance between cities are stored
+def create_city_weight(cities):
+    """create the weight matrix in which all distance between cities are stored"""
     cMatrix = []
     for i in range(len(cities)):
         l = []
@@ -32,9 +35,6 @@ def create_city_weight(cities):  # create the weight matrix in which all distanc
             l.append(get_trip_len(cities[i], cities[j]))
         cMatrix.append(l)
     return cMatrix
-
-
-
 
 
 dimension = 2
@@ -47,8 +47,7 @@ global_indiv_count = 500
 global_nb_elite = 3
 global_nb_new_indiv = 3
 # Simulated_annealing
-annealing_precision = 10**5
-
+annealing_precision = 10 ** 5
 
 cityMatrix = []
 cities = create_city(global_city_count, [[0, 100] for i in range(dimension)])
@@ -71,7 +70,8 @@ if genetic_algorithm:
     generation_scores = []
     for i in range(100):
         generations.append(time.process_time() - t)
-        population = run_generation(generation_scores, population, weights, global_city_count, global_indiv_count, global_mutation_rate,
+        population = run_generation(generation_scores, population, weights, global_city_count, global_indiv_count,
+                                    global_mutation_rate,
                                     global_selection_rate, global_nb_elite, global_nb_new_indiv)
 
     plt.subplot(211)
@@ -137,7 +137,7 @@ if annealing_comparaison:
               "% of the best score " + str(algo_gen_score) + " (algo score and) " + str(
             annealing_score) + " (best score)")
 plt.show()
-import result_display
+
 
 if annealing_comparaison:
     result_display.show_path(annealing_path, cities, 'simulated annealing')

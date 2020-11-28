@@ -2,13 +2,15 @@ from random import randint
 from math import floor
 
 
+class Indiv:
+    """an indiv is a potential solution to the problem, here it's just a list of cities which shape a route"""
 
-class Indiv:  # an indiv is a potential solution to the problem, here it's just a list of cities which shape a route
     def __init__(self, genes=()):
         self.score = 'not defined'
         self.adn = list(genes)
 
-    def random_creation(self, city_count, city_indexs, ):  # randomly generate the indiv route
+    def random_creation(self, city_count, city_indexs, ):
+        """randomly generate the indiv route"""
         c = [i for i in city_indexs]
         for i in range(city_count):
             rd = randint(0, len(c) - 1)
@@ -17,7 +19,8 @@ class Indiv:  # an indiv is a potential solution to the problem, here it's just 
         if len(self.adn) < city_count:
             print('not enough cities')
 
-    def get_score(self, weightMatrix):  # return the route length
+    def get_score(self, weightMatrix):
+        """return the route length"""
         self.score = 0
         for i in range(-1, len(self.adn) - 2):
             self.score += weightMatrix[self.adn[i]][self.adn[i + 1]]
@@ -29,7 +32,8 @@ class Indiv:  # an indiv is a potential solution to the problem, here it's just 
         print('score : ', self.score, 'adn : ', self.adn)
 
 
-def insert_indiv(indiv_list, indiv_score):  # dichotomy algorithm to sort indivs by score
+def insert_indiv(indiv_list, indiv_score):
+    """ dichotomy algorithm to sort indivs by score"""
     debug = 0
     mini = 0
     sup = len(indiv_list) - 1
@@ -54,7 +58,8 @@ def insert_indiv(indiv_list, indiv_score):  # dichotomy algorithm to sort indivs
     return 'finish exception'
 
 
-def sort_indivs(indiv_list, weight_matrix):  # sort indivs in score ascending order
+def sort_indivs(indiv_list, weight_matrix):
+    """sort indivs in score ascending order"""
     debug_list = []
     sorted_indiv_list = []
     first = True
@@ -72,7 +77,8 @@ def sort_indivs(indiv_list, weight_matrix):  # sort indivs in score ascending or
     return sorted_indiv_list
 
 
-def reproduce(dad, mum, city_count, repro_mode=1):  # mix 2 indivs to make a new one
+def reproduce(dad, mum, city_count, repro_mode=1):
+    """mix 2 indivs to make a new one"""
     son_adn = []
     if repro_mode == 1:  # first half of dad completed by the mum order : dad = [1,3,4,2] + mum [2,3,1,4] -> [1,3,2,4]
         for i in range(city_count // 2):
@@ -89,7 +95,8 @@ def reproduce(dad, mum, city_count, repro_mode=1):  # mix 2 indivs to make a new
     return Indiv(son_adn)
 
 
-def mutate(dude: Indiv, mut_rate, city_count):  # random change in the indiv adn
+def mutate(dude: Indiv, mut_rate, city_count):
+    """random change in the indiv adn"""
     nb_mutation = round(city_count * mut_rate)
     for i in range(nb_mutation):
         a = randint(0, city_count - 1)
@@ -101,8 +108,8 @@ def mutate(dude: Indiv, mut_rate, city_count):  # random change in the indiv adn
 
 
 def manage_reproduction(nbIndiv, nb_elite, indiv_list, city_count, selection_rate=.3, mutation_rate=.1,
-                        nb_new_indiv=0):  # manage
-    #  reproduction between the selected indivs
+                        nb_new_indiv=0):
+    """manage the reproductions between the selected indivs"""
 
     litter = []
     nb_breeder = floor(selection_rate * nbIndiv)
@@ -110,7 +117,7 @@ def manage_reproduction(nbIndiv, nb_elite, indiv_list, city_count, selection_rat
         ind = Indiv()
         ind.random_creation(city_count, [i for i in range(city_count)])
         indiv_list.insert(nb_breeder, ind)
-    #nb_breeder += nb_new_indiv
+    # nb_breeder += nb_new_indiv
     nb_repro_per_indiv = (nbIndiv - nb_elite - nb_new_indiv) // nb_breeder
     nb_elite_repro = nb_repro_per_indiv // 2
     for i in range(nb_breeder):
@@ -125,7 +132,7 @@ def manage_reproduction(nbIndiv, nb_elite, indiv_list, city_count, selection_rat
 
         for h in range(nb_repro_per_indiv - nb_elite_repro):
             while True:
-                a = randint(0, nb_breeder+nb_new_indiv)
+                a = randint(0, nb_breeder + nb_new_indiv)
                 if a != i:
                     break
             son = reproduce(breeder, indiv_list[a], city_count)
@@ -143,7 +150,8 @@ def manage_reproduction(nbIndiv, nb_elite, indiv_list, city_count, selection_rat
     return litter
 
 
-def genesis(indiv_count, g_city_count):  # first generation, entirely random
+def genesis(indiv_count, g_city_count):
+    """randomly generate the first generation"""
     indiv_list = []
     gen_city_indexs = [i for i in range(g_city_count)]
     for i in range(indiv_count):
@@ -154,7 +162,8 @@ def genesis(indiv_count, g_city_count):  # first generation, entirely random
 
 
 def run_generation(score_list, g_list_indivs, g_weights_matrix, g_city_count, g_indiv_count=500, g_mutation_rate=.015,
-                   g_selection_rate=.15, g_elite_size=3, g_nb_new_indiv=5):  # a normal generation
+                   g_selection_rate=.15, g_elite_size=3, g_nb_new_indiv=5):
+    """run a generation"""
     g_list_indivs = sort_indivs(g_list_indivs, g_weights_matrix)
     score_list.append(g_list_indivs[0].score)
     new_gen = manage_reproduction(g_indiv_count, g_elite_size, g_list_indivs, g_city_count, g_selection_rate,
