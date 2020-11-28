@@ -21,7 +21,7 @@ def simulated_annealing(city_count, weight_matrix, x_list, y_list, precision =.9
 
     indexs = [i for i in range(city_count)]
     chosen_route = []
-    temperature = 2 * city_count / 3
+    temperature = city_count / 4
     for i in range(city_count):  # generate first route
         a = randint(0, len(indexs) - 1)
         chosen_route.append(indexs[a])
