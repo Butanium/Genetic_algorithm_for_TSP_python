@@ -153,4 +153,13 @@ def genesis(indiv_count, g_city_count):  # first generation, entirely random
     return indiv_list
 
 
+def run_generation(score_list, g_list_indivs, g_weights_matrix, g_city_count, g_indiv_count=500, g_mutation_rate=.015,
+                   g_selection_rate=.15, g_elite_size=3, g_nb_new_indiv=5):  # a normal generation
+    g_list_indivs = sort_indivs(g_list_indivs, g_weights_matrix)
+    score_list.append(g_list_indivs[0].score)
+    new_gen = manage_reproduction(g_indiv_count, g_elite_size, g_list_indivs, g_city_count, g_selection_rate,
+                                  g_mutation_rate, g_nb_new_indiv)
+    for i in range(g_elite_size + 1):
+        new_gen.append(g_list_indivs[i])
 
+    return new_gen
