@@ -57,7 +57,9 @@ weights = create_city_weight(cities)
 # algo switch
 brute_force_comparaison = off  # if you want or not the script to run the brute force algorithm to compare
 annealing_comparaison = on
-genetic_algorithm = on
+annealing_comparaison_v2 = on
+genetic_algorithm = off
+
 
 plt.suptitle(str(global_city_count) + " cities")
 
@@ -136,6 +138,35 @@ if annealing_comparaison:
             (100 - ((algo_gen_score - annealing_score) * 100 / annealing_score))) +
               "% of the best score " + str(algo_gen_score) + " (algo score and) " + str(
             annealing_score) + " (best score)")
+
+if annealing_comparaison_v2:
+    from simulated_annealing import simulated_annealing_v2
+
+    if genetic_algorithm:
+        plt.subplot(212)
+    annealing_time = time.process_time()
+    annealing_x = []
+    annealing_y = []
+    annealing_v2_path, annealing_v2_score = simulated_annealing_v2(global_city_count, weights, annealing_x, annealing_y,
+                                                          )
+    annealing_time = time.process_time() - annealing_time
+    annealing_x.append(annealing_time)
+    annealing_y.append(annealing_v2_score)
+    plt.plot(annealing_x, annealing_y, )
+    plt.title('simulated annealing performance v2 on time')
+    plt.ylabel('simulated annealing v2 score')
+    plt.xlabel('time (s)')
+    if genetic_algorithm:
+        print("the genetic algorithm took " + str(algo_gen_time)
+              + "s to run\n while the simulated annealing v2 one took : " + str(annealing_time) + "\n" +
+              "the genetic algorithm reached " + str(
+            (100 - ((algo_gen_score - annealing_v2_score) * 100 / annealing_v2_score))) +
+              "% of the best score " + str(algo_gen_score) + " (algo score and) " + str(
+            annealing_v2_score) + " (best score)")
+
+
+
+
 plt.show()
 
 
@@ -145,3 +176,5 @@ if genetic_algorithm:
     result_display.show_path(algo_gen_path, cities, 'genetic algorithm')
 if brute_force_comparaison:
     result_display.show_path(brut_force_path, cities, 'brute force')
+if annealing_comparaison_v2:
+    result_display.show_path(annealing_v2_path, cities, 'simulated annealing_v2')
