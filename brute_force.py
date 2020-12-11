@@ -21,6 +21,7 @@ def get_permutations(list, to_print=(), perms_list=()):  # hand made permutation
             get_permutations([list[i] for i in range(1, len(list))], end_list, perms_list)
     return perms_list
 
+get_permutations(['a','b','c','d'])
 
 def brute_force_algorithm(nb_city, weight_matrix):  # brute force algorithm to compare it with the genetic algorithm
     permutations = permute_list_base([i for i in range(nb_city)])
