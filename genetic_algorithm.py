@@ -107,8 +107,8 @@ def mutate(dude: Indiv, mut_rate, city_count):
         dude.adn[a], dude.adn[b] = dude.adn[b], dude.adn[a]
 
 
-def manage_reproduction(nbIndiv, nb_elite, indiv_list, city_count, selection_rate=.3, mutation_rate=.1,
-                        nb_new_indiv=0):
+def manage_reproduction(nbIndiv, nb_elite, indiv_list, city_count, selection_rate=.2, mutation_rate=.1,
+                        nb_new_indiv=0, elite_repro_ratio=0):
     """manage the reproductions between the selected indivs"""
 
     litter = []
@@ -119,7 +119,7 @@ def manage_reproduction(nbIndiv, nb_elite, indiv_list, city_count, selection_rat
         indiv_list.insert(nb_breeder, ind)
     # nb_breeder += nb_new_indiv
     nb_repro_per_indiv = (nbIndiv - nb_elite - nb_new_indiv) // nb_breeder
-    nb_elite_repro = nb_repro_per_indiv // 2
+    nb_elite_repro = nb_repro_per_indiv * elite_repro_ratio
     for i in range(nb_breeder):
         breeder = indiv_list[i]
         repro_list = list(range(nb_elite_repro))
@@ -161,8 +161,8 @@ def genesis(indiv_count, g_city_count):
     return indiv_list
 
 
-def run_generation(score_list, g_list_indivs, g_weights_matrix, g_city_count, g_indiv_count=500, g_mutation_rate=.015,
-                   g_selection_rate=.15, g_elite_size=3, g_nb_new_indiv=5):
+def run_generation(score_list, g_list_indivs, g_weights_matrix, g_city_count, g_indiv_count=500, g_mutation_rate=.05,
+                   g_selection_rate=.2, g_elite_size=3, g_nb_new_indiv=5):
     """run a generation"""
     g_list_indivs = sort_indivs(g_list_indivs, g_weights_matrix)
     score_list.append(g_list_indivs[0].score)
