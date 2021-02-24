@@ -107,7 +107,7 @@ def mutate(dude: Indiv, mut_rate, city_count):
         dude.adn[a], dude.adn[b] = dude.adn[b], dude.adn[a]
 
 
-def manage_reproduction(nbIndiv, nb_elite, indiv_list, city_count, selection_rate=.2, mutation_rate=.1,
+def manage_reproduction(nbIndiv, nb_elite, indiv_list, city_count, selection_rate=.2, mutation_rate=.04,
                         nb_new_indiv=0, elite_repro_ratio=0):
     """manage the reproductions between the selected indivs"""
 
