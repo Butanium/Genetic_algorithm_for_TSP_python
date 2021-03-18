@@ -39,24 +39,24 @@ def create_city_weight(cities):
 dimension = 2
 city_seed = 2  # -1 for random seed
 
-
 # genetic algorithm
 global_nb_city = 25
-global_mutation_rate = .04
+global_mutation_rate = .03
 global_selection_rate = .2
 global_indiv_count = 500
 global_nb_elite = 3
 global_nb_new_indiv = 3
 global_generation_count = 1000
+global_annealing_genesis = False
+
 # Simulated_annealing
 annealing_precision = 10 ** 5
 
+# Simulated_annealing v2
+annealing_precision2 = 1e6
+annealing_iterations2 = 2000
+
 cityMatrix = []
-if city_seed == -1:
-    cities = create_city(global_nb_city, [[0, 100] for i in range(dimension)])
-else:
-    cities = fileManager.load(city_seed, True)[:global_nb_city]
-weights = create_city_weight(cities)
 
 # algo switch
 brute_force_comparaison = OFF  # if you want or not the script to run the brute force algorithm to compare
@@ -65,27 +65,36 @@ annealing_comparaison_v2 = OFF
 genetic_algorithm = ON
 genetic_graph_time = OFF
 active = brute_force_comparaison + annealing_comparaison + annealing_comparaison_v2 + genetic_algorithm
-show_path = ON
+show_path = OFF
 show_graph = ON
+cities = []
 
+def run(title="", curriculum=()):
+    if city_seed == -1:
+        cities = create_city(global_nb_city, [[0, 100] for i in range(dimension)])
+    else:
+        cities = fileManager.load(city_seed, True)[:global_nb_city]
+    weights = create_city_weight(cities)
+    if show_graph or show_path:
+        plt.suptitle(str(global_nb_city) + " cities")
 
-plt.suptitle(str(global_nb_city) + " cities")
-
-
-
-def run(title = ""):
+    if not curriculum:
+        curriculum = [[global_generation_count, global_selection_rate]]
     if genetic_algorithm:
         from simulations.genetic_algorithm import genesis, sort_indivs, run_generation
 
-        population = genesis(global_indiv_count, global_nb_city)
+        population = genesis(global_indiv_count, global_nb_city,
+                             (weights, global_selection_rate) if global_annealing_genesis else ())
         t = time.process_time()
         generations = []
         generation_scores = []
         for i in range(global_generation_count):
+            if i >= curriculum[0][0] and len(curriculum) > 1:
+                curriculum = curriculum[1:]
             generations.append(time.process_time() - t)
             population = run_generation(generation_scores, population, weights, global_nb_city, global_indiv_count,
                                         global_mutation_rate,
-                                        global_selection_rate, global_nb_elite, global_nb_new_indiv)
+                                        curriculum[0][1], global_nb_elite, global_nb_new_indiv)
 
         if show_graph:
             if active > 1:
@@ -97,7 +106,7 @@ def run(title = ""):
             else:
                 plt.plot(generation_scores)
                 plt.xlabel('generations')
-            plt.title('Genetic algorithm performance on time'+title)
+            plt.title("Genetic algorithm performance on time" + title)
             plt.ylabel('best indiv score per generation')
 
         algo_gen_time = time.process_time() - t
@@ -123,7 +132,7 @@ def run(title = ""):
         brute_force_y.append(brute_force_score)
         plt.plot(brute_force_x, brute_force_y, )
 
-        plt.title('Brute force performance on time'+title)
+        plt.title('Brute force performance on time' + title)
         plt.ylabel('brute force score')
         plt.xlabel('time (s)')
         if genetic_algorithm:
@@ -148,7 +157,7 @@ def run(title = ""):
         annealing_x.append(annealing_time)
         annealing_y.append(annealing_score)
         plt.plot(annealing_x, annealing_y, )
-        plt.title('simulated annealing performance on time'+title)
+        plt.title('simulated annealing performance on time' + title)
         plt.ylabel('simulated annealing score')
         plt.xlabel('time (s)')
         if genetic_algorithm:
@@ -169,15 +178,22 @@ def run(title = ""):
         annealing_time = time.process_time()
         annealing_x = []
         annealing_y = []
-        annealing_v2_path, annealing_v2_score = simulated_annealing_v2(global_nb_city, weights, annealing_x, annealing_y,
-                                                                       )
+        annealing_v2_path, annealing_v2_score = simulated_annealing_v2(global_nb_city, weights, annealing_x,
+                                                                       annealing_y, annealing_precision2,
+                                                                       annealing_iterations2)
+
         annealing_time = time.process_time() - annealing_time
         annealing_x.append(annealing_time)
         annealing_y.append(annealing_v2_score)
-        plt.plot(annealing_x, annealing_y, )
-        plt.title('simulated annealing performance v2 on time'+title)
+        if genetic_algorithm or annealing_comparaison:
+            plt.plot(annealing_x, annealing_y)
+            plt.xlabel('time (s)')
+        else:
+            plt.plot(annealing_y)
+            plt.xlabel('sim count')
+        plt.title('simulated annealing performance v2 on time' + title)
         plt.ylabel('simulated annealing v2 score')
-        plt.xlabel('time (s)')
+
         if genetic_algorithm:
             print("the genetic algorithm took " + str(algo_gen_time)
                   + "s to run\n while the simulated annealing v2 one took : " + str(annealing_time) + "\n" +
@@ -197,4 +213,3 @@ def run(title = ""):
         if annealing_comparaison_v2:
             result_display.show_path(annealing_v2_path, cities, 'simulated annealing_v2' + title)
     return best_indiv.score if genetic_algorithm else None
-

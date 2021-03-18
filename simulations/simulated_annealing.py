@@ -73,21 +73,24 @@ def random_change(route):
     return new_route
 
 
-def simulated_annealing_v2(city_count, weight_matrix, x_list, y_list, start_temp=.5, precision=10000, iterations=30000):
+def simulated_annealing_v2(city_count, weight_matrix, x_list=(), y_list=()
+                           , precision=1e6, iterations=2000, start_temp=1, returnData=True, start_path = ()):
     temperature = start_temp
     start_time = process_time()
     decrement = 1 - 1 / precision
     indexs = [i for i in range(city_count)]
     chosen_route = []
-
-    for i in range(city_count):  # generate first route
-        a = randint(0, len(indexs) - 1)
-        chosen_route.append(indexs[a])
-        indexs.pop(a)
-
+    if not start_path:
+        for i in range(city_count):  # generate first route
+            a = randint(0, len(indexs) - 1)
+            chosen_route.append(indexs[a])
+            indexs.pop(a)
+    else:
+        chosen_route = start_path
     energy = get_route_len(weight_matrix, chosen_route)
-    x_list.append(process_time() - start_time)
-    y_list.append(energy)
+    if returnData:
+        x_list.append(process_time() - start_time)
+        y_list.append(energy)
     for j in range(iterations):
         new_route = random_change(chosen_route)
         new_energy = get_route_len(weight_matrix, new_route)
@@ -95,10 +98,12 @@ def simulated_annealing_v2(city_count, weight_matrix, x_list, y_list, start_temp
         if exp(-(new_energy - energy) / temperature) > r:
             chosen_route = new_route
             energy = new_energy
+        if returnData:
             x_list.append(process_time() - start_time)
             y_list.append(energy)
         temperature *= decrement
         # print(temperature)
-    x_list.append(process_time() - start_time)
-    y_list.append(energy)
+    if returnData:
+        x_list.append(process_time() - start_time)
+        y_list.append(energy)
     return chosen_route, energy

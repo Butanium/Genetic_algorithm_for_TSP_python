@@ -1,12 +1,12 @@
 from random import randint
 from math import floor
-
+from simulations.simulated_annealing import simulated_annealing_v2
 
 class Indiv:
     """an indiv is a potential solution to the problem, here it's just a list of cities which shape a route"""
 
     def __init__(self, genes=()):
-        self.score = 'not defined'
+        self.score = -1
         self.adn = list(genes)
 
     def random_creation(self, city_count, city_indexs, ):
@@ -21,6 +21,8 @@ class Indiv:
 
     def get_score(self, weightMatrix):
         """return the route length"""
+        if self.score > -1:
+            return self.score
         self.score = 0
         for i in range(-1, len(self.adn) - 2):
             self.score += weightMatrix[self.adn[i]][self.adn[i + 1]]
@@ -81,17 +83,13 @@ def reproduce(dad, mum, city_count, repro_mode=1):
     """mix 2 indivs to make a new one"""
     son_adn = []
     if repro_mode == 1:  # first half of dad completed by the mum order : dad = [1,3,4,2] + mum [2,3,1,4] -> [1,3,2,4]
-        for i in range(city_count // 2):
-            son_adn.append(dad.adn[i])
+        son_adn = dad.adn[:city_count//2]
         for j in range(city_count):
             if mum.adn[j] in son_adn:
                 continue
             son_adn.append(mum.adn[j])
     elif repro_mode == 2:
         pass
-    # noinspection PyTypeChecker
-    if len(son_adn) < city_count:
-        print('caca')
     return Indiv(son_adn)
 
 
@@ -108,7 +106,7 @@ def mutate(dude: Indiv, mut_rate, city_count):
 
 
 def manage_reproduction(nbIndiv, nb_elite, indiv_list, city_count, selection_rate=.2, mutation_rate=.04,
-                        nb_new_indiv=0, elite_repro_ratio=0):
+                        nb_new_indiv=0,): # elite_repro_ratio=0):
     """manage the reproductions between the selected indivs"""
 
     litter = []
@@ -119,20 +117,20 @@ def manage_reproduction(nbIndiv, nb_elite, indiv_list, city_count, selection_rat
         indiv_list.insert(nb_breeder, ind)
     # nb_breeder += nb_new_indiv
     nb_repro_per_indiv = (nbIndiv - nb_elite - nb_new_indiv) // nb_breeder
-    nb_elite_repro = nb_repro_per_indiv * elite_repro_ratio
+    # nb_elite_repro = nb_repro_per_indiv * elite_repro_ratio
     for i in range(nb_breeder):
         breeder = indiv_list[i]
-        repro_list = list(range(nb_elite_repro))
-        if i < nb_elite_repro:
-            repro_list.remove(i)
-        for j in repro_list:
-            son = reproduce(breeder, indiv_list[j], city_count)
-            mutate(son, mutation_rate, city_count)
-            litter.append(son)
+        # repro_list = list(range(nb_elite_repro))
+        # if i < nb_elite_repro:
+        #     repro_list.remove(i)
+        # for j in repro_list:
+        #     son = reproduce(breeder, indiv_list[j], city_count)
+        #     mutate(son, mutation_rate, city_count)
+        #     litter.append(son)
 
-        for h in range(nb_repro_per_indiv - nb_elite_repro):
+        for h in range(nb_repro_per_indiv):  # - nb_elite_repro):
             while True:
-                a = randint(0, nb_breeder + nb_new_indiv)
+                a = randint(0, nb_breeder + nb_new_indiv-1)
                 if a != i:
                     break
             son = reproduce(breeder, indiv_list[a], city_count)
@@ -150,15 +148,26 @@ def manage_reproduction(nbIndiv, nb_elite, indiv_list, city_count, selection_rat
     return litter
 
 
-def genesis(indiv_count, g_city_count):
+def genesis(indiv_count, g_city_count, param=(), annealing_ratio=0):
     """randomly generate the first generation"""
     indiv_list = []
-    gen_city_indexs = [i for i in range(g_city_count)]
-    for i in range(indiv_count):
-        indiv = Indiv()
-        indiv.random_creation(g_city_count, gen_city_indexs)
-        indiv_list.append(indiv)
-    return indiv_list
+    if param:
+        weight_matrix, selection_rate = param
+        n = round(indiv_count * selection_rate)
+        na = round(n * annealing_ratio)
+        for i in range(na):
+            path, score = simulated_annealing_v2(g_city_count, weight_matrix, returnData=False)
+            indiv = Indiv(path)
+            indiv.score = score
+            indiv_list.append(indiv)
+        return indiv_list + genesis(n-na, g_city_count)
+    else:
+        gen_city_indexs = [i for i in range(g_city_count)]
+        for i in range(indiv_count):
+            indiv = Indiv()
+            indiv.random_creation(g_city_count, gen_city_indexs)
+            indiv_list.append(indiv)
+        return indiv_list
 
 
 def run_generation(score_list, g_list_indivs, g_weights_matrix, g_city_count, g_indiv_count=500, g_mutation_rate=.05,

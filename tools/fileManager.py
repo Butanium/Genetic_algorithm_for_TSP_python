@@ -2,7 +2,7 @@ from os import walk
 
 
 def save(liste, title ="save", subtitle =""):
-    _, _, filenames = next(walk("/saves"))
+    _, _, filenames = next(walk("C:/Users/Clement/Documents/prépa/algogen/saves"))
     m = -1
     for i in filenames:
         if title+"_" in i:
@@ -18,7 +18,7 @@ def str_to_list(s):
 
 
 def load(index, l=False, prefix = "save",fun=int):
-    _, _, filenames = next(walk("/saves"))
+    _, _, filenames = next(walk("C:/Users/Clement/Documents/prépa/algogen/saves"))
     for i in filenames:
         if prefix+"_" in i:
             if int(i.split('_')[-1].split('.')[0]) == index:
